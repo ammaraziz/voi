@@ -15,7 +15,7 @@ filter:
   
 mask:
   utr: "resources/mask.utr.bed"
-  custom: "resources/mask.custom.bed"
+  custom: "resources/mask.utr.bed"
 
 tree:
   model: "GTR+I+G"

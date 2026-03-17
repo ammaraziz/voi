@@ -65,10 +65,10 @@ rule plot_snpdist_cluster:
     message:
         "plotting heatmap for dist matrix"
     input:
+        meta=rules.collate.output.metadata,
         snpdist=rules.calc_snpdist_cluster.output.snpdist,
-        meta=INDIR / "hav.tsv",
     output:
-        snpdist=OUTDIR / "plots" / "snpdist.vidrl.pdf",
+        snpdist=OUTDIR / "plots" / "snpdist.cluster.pdf",
     threads: 1
     conda:
         "../envs/snpdist_plot.yaml"
@@ -85,8 +85,8 @@ rule plot_snpdist_all:
     message:
         "plotting heatmap for dist matrix"
     input:
+        meta=rules.collate.output.metadata,
         snpdist=rules.calc_all_snpdist.output.snpdist,
-        meta=OUTDIR / "all.metadata.tsv",
     output:
         snpdist=OUTDIR / "plots" / "snpdist.all.pdf",
     conda:

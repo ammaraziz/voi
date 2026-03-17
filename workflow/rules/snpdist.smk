@@ -23,11 +23,13 @@ rule mask_custom:
     output:
         masked_cluster=OUTDIR / "snpdist" / "cluster.masked.custom.fasta",
         masked_all=OUTDIR / "snpdist" / "all.masked.custom.fasta",
+    log:
+        OUTDIR / "logs" / "mask_custom.txt",
     params:
         bed=config["mask"]["custom"],
     threads: 1
     conda:
-        "../envs/misc.yaml"
+        "../envs/augur.yaml"
     shell:
         """
         augur mask \
