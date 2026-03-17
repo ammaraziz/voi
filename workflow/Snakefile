@@ -3,16 +3,26 @@
 # https://snakemake.readthedocs.io/en/stable/snakefiles/best_practices.html,
 # in particular regarding the standardized folder structure mentioned there.
 
+# load required packages
+from pathlib import Path
+
+INDIR = Path("input")
+OUTDIR = Path("results")
+RESOURCES = Path("resources")
+
 
 # load configuration
 # -----------------------------------------------------
-configfile: "config/config.yaml"
+configfile: "config/base.yaml"
 
 
 # load rules
 # -----------------------------------------------------
-include: "rules/common.smk"
-include: "rules/process_reads.smk"
+include: "rules/collate.smk"
+include: "rules/align.smk"
+include: "rules/phylo.smk"
+include: "rules/snpdist.smk"
+include: "rules/export.smk"
 
 
 # optional messages, log and error handling
@@ -33,5 +43,5 @@ onerror:
 # -----------------------------------------------------
 rule all:
     input:
-        "results/multiqc/multiqc_report.html",
+        OUTDIR / "plots" / "global.pdf",
     default_target: True

@@ -1,0 +1,6 @@
+name: voi_augur
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - augur=33.0.0

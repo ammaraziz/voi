@@ -1,0 +1,9 @@
+name: voi_misc
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - csvtk=0.36.0
+  - seqkit=2.13.0
+  - goalign=0.4.0
+  - snp-dists=1.2.0

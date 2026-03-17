@@ -1,0 +1,44 @@
+sample_sheet: ".test/config/samples.tsv"
+
+align:
+  reference: "resources/reference.fasta"
+  min_len: 5850 # ~77.5% of approximate genome length 
+
+plots:
+  cluster:
+    - "PQ496830.1"
+    - "AB623053.1"
+
+filter:
+  strains_remove: "resources/strains_remove.txt"
+  strains_include: "resources/strains_include.txt"
+  
+mask:
+  utr: "resources/mask.utr.bed"
+  custom: "resources/mask.custom.bed"
+
+tree:
+  model: "GTR+I+G"
+  tree_params: "-B 1000 -bnni -alrt 1000"
+
+refine:
+    coalescent: "opt"
+    date_inference: "marginal"
+    clock_filter_iqd: 4
+    
+ancestral:
+    inference: "joint"
+
+traits:
+    columns:
+      - country
+      - region
+    sampling_bias_correction: 3 # currently not used
+
+auspice:
+  strain_id_field: "strain"
+  traits: ["Country", "Genotype"]
+  config: "resources/auspice.json"
+  clades: "resources/clades.tsv"
+  colors: "resources/colors.tsv"
+  export: "strain division location"

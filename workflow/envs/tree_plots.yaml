@@ -1,0 +1,19 @@
+name: voi_treeplots
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - r-pacman
+  - r-dplyr
+  - r-tidyr
+  - r-ggplot2
+  - r-pheatmap
+  - r-viridis
+  - r-gridExtra
+  - r-svglite
+  - r-patchwork
+  - r-lubridate
+  - r-optparse
+  - r-tidytree
+  - bioconductor-ggtree
+  - bioconductor-treeio

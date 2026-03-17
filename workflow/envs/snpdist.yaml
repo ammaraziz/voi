@@ -1,0 +1,7 @@
+name: voi_snpdist
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - snp-dists=1.2.0
+  - goalign=0.4.0
