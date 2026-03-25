@@ -1,18 +1,18 @@
 rule tree_bootstrapped:
-    message:
-        "Building bootstrap phylogenetic tree"
     input:
         alignment=rules.mask.output.sequences,
     output:
         tree=OUTDIR / "tree" / "tree.boot.nwk",
-    threads: 50
-    params:
-        substitution=config["tree"]["model"],
-        tree_params=config["tree"]["tree_params"],
     log:
         OUTDIR / "logs" / "tree.boot.txt",
     conda:
         "../envs/augur.yaml"
+    threads: 50
+    params:
+        substitution=config["tree"]["model"],
+        tree_params=config["tree"]["tree_params"],
+    message:
+        "Building bootstrap phylogenetic tree"
     shell:
         """
         augur tree \
@@ -26,19 +26,19 @@ rule tree_bootstrapped:
 
 
 rule tree:
-    message:
-        "Building tree"
     input:
         alignment=rules.mask.output.sequences,
     output:
         tree=OUTDIR / "tree" / "tree.raw.nwk",
-    threads: 20
-    params:
-        substitution=config["tree"]["model"],
     log:
         OUTDIR / "logs" / "tree.txt",
     conda:
         "../envs/augur.yaml"
+    threads: 20
+    params:
+        substitution=config["tree"]["model"],
+    message:
+        "Building tree"
     shell:
         """
     augur tree \
@@ -51,13 +51,6 @@ rule tree:
 
 
 rule refine:
-    message:
-        """
-    Refining tree
-      - estimate timetree
-      - use {params.coalescent} coalescent timescale
-      - estimate {params.date_inference} node dates
-    """
     input:
         alignment=rules.mask.output.sequences,
         tree=rules.tree.output.tree,
@@ -67,14 +60,21 @@ rule refine:
         node_data=OUTDIR / "tree" / "nodedata" / "branch-lengths.json",
     log:
         OUTDIR / "logs" / "refine.txt",
+    conda:
+        "../envs/augur.yaml"
+    threads: 1
     params:
         coalescent=config["refine"]["coalescent"],
         date_inference=config["refine"]["date_inference"],
         clock_filter_iqd=config["refine"]["clock_filter_iqd"],
         strain_id=config["auspice"]["strain_id_field"],
-    threads: 1
-    conda:
-        "../envs/augur.yaml"
+    message:
+        """
+    Refining tree
+      - estimate timetree
+      - use {params.coalescent} coalescent timescale
+      - estimate {params.date_inference} node dates
+    """
     shell:
         """
         augur refine \
@@ -95,20 +95,20 @@ rule refine:
 
 
 rule ancestral:
-    message:
-        "Reconstructing ancestral sequences and mutations"
     input:
         tree=rules.refine.output.tree,
         alignment=rules.mask.output.sequences,
         reference=config["align"]["reference"],
     output:
         node_data=OUTDIR / "tree" / "nodedata" / "nt-muts.json",
-    params:
-        inference=config["ancestral"]["inference"],
     log:
         OUTDIR / "logs" / "ancestral.txt",
     conda:
         "../envs/augur.yaml"
+    params:
+        inference=config["ancestral"]["inference"],
+    message:
+        "Reconstructing ancestral sequences and mutations"
     shell:
         """
     augur ancestral \
@@ -139,20 +139,20 @@ rule translate:
 
 
 rule traits:
-    message:
-        """Inferring ancestral traits"""
     input:
         tree=rules.refine.output.tree,
         metadata=rules.collate.output.metadata,
     output:
         node_data=OUTDIR / "tree" / "nodedata" / "traits.json",
-    params:
-        strain_id=config.get("strain_id_field", "strain"),
-        columns=config["traits"]["columns"],
     log:
         OUTDIR / "logs" / "traits.log",
     conda:
         "../envs/augur.yaml"
+    params:
+        strain_id=config.get("strain_id_field", "strain"),
+        columns=config["traits"]["columns"],
+    message:
+        """Inferring ancestral traits"""
     shell:
         """
         augur traits \

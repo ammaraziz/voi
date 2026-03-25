@@ -7,9 +7,9 @@ rule collate:
     output:
         metadata=OUTDIR / "raw" / "all.tsv",
         sequences=OUTDIR / "raw" / "all.fasta",
-    threads: 1
     conda:
         "../envs/misc.yaml"
+    threads: 1
     shell:
         """
     csvtk -t concat \

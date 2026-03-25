@@ -3,11 +3,11 @@ rule extract_cluster_sequences:
         alignment=rules.mask.output.sequences,
     output:
         alignment=OUTDIR / "snpdist" / "cluster.fasta",
-    params:
-        include=config["filter"]["strains_include"],
-    threads: 1
     conda:
         "../envs/misc.yaml"
+    threads: 1
+    params:
+        include=config["filter"]["strains_include"],
     shell:
         """
         seqkit grep -f {params.include} {input.alignment} > {output.alignment}
@@ -15,8 +15,6 @@ rule extract_cluster_sequences:
 
 
 rule mask_custom:
-    message:
-        "Masking custom region"
     input:
         cluster_seqs=rules.extract_cluster_sequences.output.alignment,
         all_seqs=rules.mask.output.sequences,
@@ -25,11 +23,13 @@ rule mask_custom:
         masked_all=OUTDIR / "snpdist" / "all.masked.custom.fasta",
     log:
         OUTDIR / "logs" / "mask_custom.txt",
-    params:
-        bed=config["mask"]["custom"],
-    threads: 1
     conda:
         "../envs/augur.yaml"
+    threads: 1
+    params:
+        bed=config["mask"]["custom"],
+    message:
+        "Masking custom region"
     shell:
         """
         augur mask \
@@ -45,16 +45,16 @@ rule mask_custom:
 
 
 rule calc_snpdist_cluster:
-    message:
-        "Calculating snp distance for cluster sequences only"
     input:
         sequences=rules.mask_custom.output.masked_cluster,
     output:
         snpdist=OUTDIR / "snpdist" / "snpdist.cluster.tsv",
         snpdistgaps=OUTDIR / "snpdist" / "snpdist.gaps.cluster.tsv",
-    threads: 5
     conda:
         "../envs/misc.yaml"
+    threads: 5
+    message:
+        "Calculating snp distance for cluster sequences only"
     shell:
         """
     goalign compute distance \
@@ -67,16 +67,16 @@ rule calc_snpdist_cluster:
 
 
 rule calc_all_snpdist:
-    message:
-        "Calculating snp distance for all sequences"
     input:
         sequences=rules.mask_custom.output.masked_all,
     output:
         snpdist=OUTDIR / "snpdist" / "snpdist.all.tsv",
         snpdistgaps=OUTDIR / "snpdist" / "snpdist.gaps.all.tsv",
-    threads: 5
     conda:
         "../envs/snpdist.yaml"
+    threads: 5
+    message:
+        "Calculating snp distance for all sequences"
     shell:
         """
     goalign compute distance \

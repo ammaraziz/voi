@@ -4,8 +4,6 @@ Export to auspice.json and visualisations with ggtree
 
 
 rule export:
-    message:
-        """Exporting data files for auspice"""
     input:
         tree=rules.refine.output.tree,
         metadata=rules.collate.output.metadata,
@@ -16,14 +14,16 @@ rule export:
         auspice_config=config["auspice"]["config"],
     output:
         auspice_json=OUTDIR / "auspice" / "tree.json",
-    params:
-        strain_id=config.get("strain_id_field", "strain"),
-        metadata_columns=config["auspice"]["export"],
-        auspice_root=OUTDIR / "nc_dataset" / "tree_root-sequence.json",
     log:
         OUTDIR / "logs" / "export.log",
     conda:
         "../envs/augur.yaml"
+    params:
+        strain_id=config.get("strain_id_field", "strain"),
+        metadata_columns=config["auspice"]["export"],
+        auspice_root=OUTDIR / "nc_dataset" / "tree_root-sequence.json",
+    message:
+        """Exporting data files for auspice"""
     shell:
         """
     augur export v2 \
@@ -39,19 +39,19 @@ rule export:
 
 
 rule plot_tree:
-    message:
-        "Plotting global tree"
     input:
         meta=rules.collate.output.metadata,
         tree=rules.tree_bootstrapped.output.tree,
     output:
         pdf=OUTDIR / "plots" / "global.pdf",
+    conda:
+        "../envs/tree_plots.yaml"
     params:
         title="not-used",
         cluster=config["plots"]["cluster"],
         label=config["plots"],
-    conda:
-        "../envs/tree_plots.yaml"
+    message:
+        "Plotting global tree"
     shell:
         """
         Rscript workflow/scripts/plot_tree.R \
@@ -62,16 +62,16 @@ rule plot_tree:
 
 
 rule plot_snpdist_cluster:
-    message:
-        "plotting heatmap for dist matrix"
     input:
         meta=rules.collate.output.metadata,
         snpdist=rules.calc_snpdist_cluster.output.snpdist,
     output:
         snpdist=OUTDIR / "plots" / "snpdist.cluster.pdf",
-    threads: 1
     conda:
         "../envs/snpdist_plot.yaml"
+    threads: 1
+    message:
+        "plotting heatmap for dist matrix"
     shell:
         """
         Rscript workflow/scripts/plot_snpdist.R \
@@ -82,8 +82,6 @@ rule plot_snpdist_cluster:
 
 
 rule plot_snpdist_all:
-    message:
-        "plotting heatmap for dist matrix"
     input:
         meta=rules.collate.output.metadata,
         snpdist=rules.calc_all_snpdist.output.snpdist,
@@ -92,6 +90,8 @@ rule plot_snpdist_all:
     conda:
         "../envs/snpdist_plot.yaml"
     threads: 1
+    message:
+        "plotting heatmap for dist matrix"
     shell:
         """
         Rscript workflow/scripts/plot_snpdist.R \

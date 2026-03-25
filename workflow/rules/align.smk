@@ -4,20 +4,21 @@ Snakefile for cleaning and aligning msa
 
 
 rule align:
-    """
-    Aligning sequences to {input.reference}
-      - filling gaps with N
-    """
     input:
         sequences=rules.collate.output.sequences,
         reference=config["align"]["reference"],
     output:
         alignment=OUTDIR / "align" / "all.fasta",
-    threads: 20
     log:
         OUTDIR / "logs" / "align.txt",
     conda:
         "../envs/augur.yaml"
+    threads: 20
+    message:
+        """
+    Aligning sequences to {input.reference}
+        - filling gaps with N
+        """
     shell:
         """
         augur align \
@@ -30,20 +31,21 @@ rule align:
 
 
 rule mask:
-    """
-    Mask start and end of alignments
-    """
     input:
         alignment=rules.align.output.alignment,
     output:
         sequences=OUTDIR / "align" / "masked.fasta",
-    params:
-        bed=config["mask"]["utr"],
-    threads: 1
     log:
         OUTDIR / "logs" / "mask.txt",
     conda:
         "../envs/augur.yaml"
+    threads: 1
+    params:
+        bed=config["mask"]["utr"],
+    message:
+        """
+        Mask start and end of alignments
+        """
     shell:
         """
         augur mask \
@@ -58,9 +60,9 @@ rule index:
         sequences=rules.mask.output.sequences,
     output:
         index=OUTDIR / "align" / "index.txt",
-    threads: 1
     conda:
         "../envs/augur.yaml"
+    threads: 1
     shell:
         """
         augur index \
