@@ -1,103 +1,124 @@
-pacman::p_load(dplyr, tidyr, ggplot2, pheatmap, viridis, gridExtra, svglite, optparse)
+pacman::p_load(dplyr, pheatmap, viridisLite, optparse, tibble)
+
+rlang::global_handle()
 
 option_list <- list(
-  make_option(c("-i","--input"), help = "input tsv snp dist", 
+  make_option(c("-i","--input"),
+              help = "input tsv snp dist.", 
               action="store", type="character", default=NA),
-  make_option(c("-m","--meta"), help = "meta.tsv file containing meta data information", 
+  make_option(c("-m","--meta"),
+              help = "file containing meta data information. This is used to plot the colored bars. The first column must match the first column in the matrix.tsv.",
               action="store", type="character", default=NA),
-  make_option(c("-o","--output"), help = "output path and name",
+  make_option(c("-o","--output"),
+              help = "output path/file. Filetype is decided by the extension in the path. png, pdf, tiff, bmp, jpeg",
               action="store", type="character", default=NA),
-  make_option(c("-g","--genotype"), help = "genotype - number only",
-              action="store", type="character", default=NA)
+  make_option(c("--font-size"),
+              help = "Control the font size",
+              action="store", type="numeric", default=12),
+  make_option(c("--decimals"),
+              help = "Specify the number of decimals to show",
+              action="store", type="numeric", default=0),
+  make_option(c("--color-steps"),
+              help = "Specify the number of viridis color steps to use.",
+              action="store", type="numeric", default=256),
+  make_option(c("--plot-type"), 
+              help = "Controls if to display the complete matrix complete, top or bottom half. Options: complete, top, bottom.",
+              action="store", type="character", default="all"),
+  make_option(c("-a", "--annotate-column"), 
+              help = "Given a metafile, select which column to include as an annotation column. Colors will be autoselected for you using colorbrew2 divergent scale.",
+              action="append", type = "character")
 )
 
 parser <- OptionParser(
   usage = paste("%prog -i [INPUTDIR] -o [OUTPUTDIR]",
-                "Script to plot genotype specific trees", sep="\n"),
-  epilogue = "INPUT, OUTPUT are required",
+                "Plot heatmap", sep="\n"),
   option_list=option_list
 )
 
-#custom function to stop quietly
-stop_quietly = function(message) {
-  opt = options(show.error.messages = FALSE)
-  on.exit(options(opt))
-  cat(message, sep = "\n")
-  quit()
+arguments = parse_args(object = parser, positional_arguments = FALSE)
+
+# control number of decimals to show
+number_format = paste0("%.", arguments$decimals, "f")
+
+# viridis colors
+if (!is.na(arguments$`color-steps`)) {
+  ucolors = viridis(arguments$`color-steps`, direction = -1, begin = 0.2)
+} else {
+  ucolors = viridis(256, direction = -1, begin = 0.1)
 }
 
-arguments=NA
-tryCatch(
-  { arguments = parse_args(object = parser, positional_arguments = FALSE) },
-  error = function(e) { }
+# annotation column colors
+acolors = c('#1f78b4', '#33a02c', '#e31a1c', '#6a3d9a', '#b15928', "#FA8072", "#FFD700", "#bdbdbd")
+
+# read in data
+distdata = read.csv(arguments$input, sep = "\t", header = F, skip = 1) %>%
+  rename(id = V1)
+rownames(distdata) = distdata$id
+colnames(distdata) = c("id", distdata$id)
+
+# keep track of how big the matrix is
+matrix_width = nrow(distdata) - 1
+
+# metadata
+if (!is.na(arguments$meta)) {
+  meta = read.csv(arguments$meta, sep = "\t")
+  # create annotation dataframe
+  annotations = distdata %>% 
+    select(id) %>%
+    left_join(meta, by = c("id" = colnames(meta)[1])) %>%
+    mutate(across(everything(), as.factor))
+  annotations = annotations[, c(arguments$`annotate-column`)]
+  # create colours
+  annotations_colors = list()
+  for (colname in arguments$`annotate-column`) {
+    col_len = length(unique(annotations[, colname]))
+    dat = setNames(rep(acolors, length.out = col_len), unique(annotations[, colname]))
+    annotations_colors = append(annotations_colors, setNames(dat, colname))
+  }
+} else {
+  annotations = NA
+  annotations_colors = NA
+}
+print(annotations_colors)
+# convert to matrix 
+plot_matrix = as.matrix(distdata[,c(2:matrix_width)])
+#calc dist for clustering then get order
+order = hclust(dist(t(plot_matrix), method = "euclidean"))$order
+plot_matrix = plot_matrix[order, order]
+#keep display numbers for later use
+display_numbers = round(plot_matrix, arguments$decimals)
+
+# control what to display
+  if (arguments$`plot-type` == "all") {
+    plot_matrix = plot_matrix
+
+  } else if (arguments$`plot-type` == "bottom")  {
+    plot_matrix[upper.tri(plot_matrix)] = NA
+    display_numbers[upper.tri(plot_matrix)] = ''
+
+  } else if (arguments$`plot-type` == "top")  {
+    plot_matrix[lower.tri(plot_matrix)] = NA
+    display_numbers[lower.tri(plot_matrix)] = ''
+    
+  } else {
+    stop("Whoops - can only choose from all, top, bottom.")
+  }
+
+pheatmap(
+  mat = plot_matrix,
+  color = ucolors,
+  display_numbers = display_numbers,
+  angle_col = 90,
+  annotation_row = annotations,
+  annotation_colors = annotations_colors,
+  cluster_cols = F,
+  cluster_rows = F,
+  border_color = NA,
+  number_color = "black",
+  fontsize_number = arguments$`font-size`,
+  fontsize_row = 12,
+  fontsize_col = 12,
+  filename = arguments$output,
+  width = 11.7,
+  height = 8.27
 )
-
-if (any(is.na(arguments$options))) {
-  stop_quietly(parser$usage)
-}
-
-if (interactive()) {
-  arguments = list(
-    meta = "../output/all.metadata.tsv",
-    input = "../output/snpdist/snpdist.vidrl.tsv",
-    output = "tmp.pdf",
-    genotype = "HAV-A1"
-  )
-}
-
-meta = read.csv(arguments$meta, sep = "\t") %>%
-    mutate(name = case_when(
-        grepl("AUST", Source) ~ paste(Sample_ID, Country, strain, sep = "|"),
-        TRUE ~ paste(Country, Suspected_Country_Infection, strain, sep = "|")
-        )
-    )
-
-# remove the first line 
-snpdist_cluster = read.csv(arguments$input, sep = "\t", header = F) %>%
-    slice(-1)
-
-# extract width for subsetting downstream
-# nrow is used due to the first column being names.
-# the matrix is square, therefore nrow gives correct value
-width = nrow(snpdist_cluster)
-
-# rename columns
-colnames(snpdist_cluster) = c("id", snpdist_cluster$V1)
-snpdist_cluster = left_join(snpdist_cluster, meta, by = c("id" = "strain"))
-snpdist_cluster_matrix = snpdist_cluster[, c(2:width)]
-
-snpdistplot = pheatmap(mat = snpdist_cluster_matrix,
-         labels_row = snpdist_cluster$name,
-         labels_col = snpdist_cluster$name,
-         display_numbers = T,
-         number_format = "%.0f",
-         treeheight_row = 0,
-         treeheight_col = 0,
-         number_color = "black",
-         viridis(10, direction = -1, begin = 0.2),
-         fontsize=15
-         )[[4]]
-
-
-ggsave(filename=arguments$output, plot=snpdistplot, width = 297, height = 210, units = "mm")
-# 
-# ### snp dist with gaps and ambig
-# snpdist_cluster_gaps = read.csv("../output/snpdist/snpdistgaps.vidrl.tsv", sep = "\t", header = F) %>%
-#     slice(-1)
-# colnames(snpdist_cluster_gaps) = c("id", snpdist_cluster_gaps$V1)
-# snpdist_cluster_gaps = left_join(snpdist_cluster_gaps, meta, by = c("id" = "strain"))
-# snpdist_cluster_gaps_matrix = snpdist_cluster_gaps[, c(2:15)] %>% mutate(QLD_2892S = as.integer(QLD_2892S))
-# 
-# plot_gaps = pheatmap(mat = snpdist_cluster_gaps_matrix,
-#                 labels_row = snpdist_cluster_gaps$name,
-#                 labels_col = snpdist_cluster_gaps$name,
-#                 display_numbers = T,
-#                 number_format = "%.0f",
-#                 treeheight_row = 0,
-#                 treeheight_col = 0,
-#                 number_color = "black",
-#                 viridis(10, direction = -1, begin = 0.2),
-#                 fontsize=15)[[4]]
-# 
-# plot_arrange_gaps = grid.arrange(plot_gaps, nrow=1, ncol=1)
-# ggsave(filename="snpdist_cluster_gaps.pdf", plot=plot_arrange_gaps, width = 297, height = 210, units = "mm")
