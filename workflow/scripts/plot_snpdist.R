@@ -7,7 +7,7 @@ option_list <- list(
               help = "input tsv snp dist.", 
               action="store", type="character", default=NA),
   make_option(c("-m","--meta"),
-              help = "file containing meta data information. This is used to plot the colored bars. The first column must match the first column in the matrix.tsv.",
+              help = "file containing meta data information. This is used to plot the colored bars. In the meta.tsv the first column must match up with matrix.tsv first column.",
               action="store", type="character", default=NA),
   make_option(c("-o","--output"),
               help = "output path/file. Filetype is decided by the extension in the path. png, pdf, tiff, bmp, jpeg",
@@ -26,7 +26,10 @@ option_list <- list(
               action="store", type="character", default="all"),
   make_option(c("-a", "--annotate-column"), 
               help = "Given a metafile, select which column to include as an annotation column. Colors will be autoselected for you using colorbrew2 divergent scale.",
-              action="append", type = "character")
+              action="append", type = "character"),
+  make_option(c("--labels"),
+              help = "Given a metafile, use this column in the metafile as the custom labels for heatmap",
+              action="store", type = "character", default=NA)
 )
 
 parser <- OptionParser(
@@ -62,24 +65,43 @@ matrix_width = nrow(distdata) - 1
 # metadata
 if (!is.na(arguments$meta)) {
   meta = read.csv(arguments$meta, sep = "\t")
+
   # create annotation dataframe
   annotations = distdata %>% 
     select(id) %>%
     left_join(meta, by = c("id" = colnames(meta)[1])) %>%
     mutate(across(everything(), as.factor))
+  rownames(annotations) = annotations$id
   annotations = annotations[, c(arguments$`annotate-column`)]
+
   # create colours
-  annotations_colors = list()
+  anno_colors = list()
   for (colname in arguments$`annotate-column`) {
     col_len = length(unique(annotations[, colname]))
-    dat = setNames(rep(acolors, length.out = col_len), unique(annotations[, colname]))
-    annotations_colors = append(annotations_colors, setNames(dat, colname))
+    dat = list(setNames(rep(acolors, length.out = col_len), unique(annotations[, colname])))
+    names(dat) = colname
+    anno_colors = append(anno_colors,dat)
   }
+  # custom labels
+  if (!is.na(arguments$labels)) {
+    if (arguments$label %in% colnames(meta)) {
+      labels_row = annotations[ , arguments$label]
+      labels_col = annotations[ , arguments$label]
+    } else {
+      stop("Ooops - you specified a column name that does not match the colnames in the input meta file. Check inputs.")
+    }
+  } else {
+    labels_row = rownames(annotations)
+    labels_col = rownames(annotations)
+  }
+
 } else {
   annotations = NA
-  annotations_colors = NA
+  anno_colors = NA
+  labels_row = rownames(distdata)
+  labels_col = colnames(distdata)
 }
-print(annotations_colors)
+
 # convert to matrix 
 plot_matrix = as.matrix(distdata[,c(2:matrix_width)])
 #calc dist for clustering then get order
@@ -110,7 +132,7 @@ pheatmap(
   display_numbers = display_numbers,
   angle_col = 90,
   annotation_row = annotations,
-  annotation_colors = annotations_colors,
+  annotation_colors = anno_colors,
   cluster_cols = F,
   cluster_rows = F,
   border_color = NA,
@@ -120,5 +142,7 @@ pheatmap(
   fontsize_col = 12,
   filename = arguments$output,
   width = 11.7,
-  height = 8.27
+  height = 8.27,
+  labels_row = labels_row,
+  labels_col = labels_col
 )
