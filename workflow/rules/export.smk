@@ -47,14 +47,12 @@ rule plot_tree:
     conda:
         "../envs/tree_plots.yaml"
     params:
-        title="not-used",
-        cluster=config["plots"]["cluster"],
-        label=config["plots"],
+        script_path=config["plots"]["scripts"]["tree"],
     message:
         "Plotting global tree"
     shell:
         """
-        Rscript workflow/scripts/plot_tree.R \
+        Rscript {params.script_path} \
         --tree {input.tree} \
         --meta {input.meta} \
         --output {output.pdf}
@@ -70,11 +68,13 @@ rule plot_snpdist_cluster:
     conda:
         "../envs/snpdist_plot.yaml"
     threads: 1
+    params:
+        script_path=config["plots"]["scripts"]["snpdist"],
     message:
         "plotting heatmap for dist matrix"
     shell:
         """
-        Rscript workflow/scripts/plot_snpdist.R \
+        Rscript {params.script_path} \
         --input {input.snpdist} \
         --meta {input.meta} \
         --output {output.snpdist}
@@ -88,13 +88,15 @@ rule plot_snpdist_all:
     output:
         snpdist=OUTDIR / "plots" / "snpdist.all.pdf",
     conda:
-        "../envs/snpdist_plot.yaml"
+        "voi_snpdistplot"
     threads: 1
+    params:
+        script_path=config["plots"]["scripts"]["snpdist"],
     message:
-        "plotting heatmap for dist matrix"
+        "plotting heatmap for distance matrix"
     shell:
         """
-        Rscript workflow/scripts/plot_snpdist.R \
+        Rscript {params.script_path} \
         --input {input.snpdist} \
         --meta {input.meta} \
         --output {output.snpdist}
