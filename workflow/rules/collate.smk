@@ -1,9 +1,9 @@
 rule collate:
     input:
-        backbone=INDIR / "backbone.tsv",
-        backbone_seq=INDIR / "backbone.fasta",
-        vidrl=INDIR / "input.tsv",
-        vidrl_seq=INDIR / "input.fasta",
+        backbone=config["input"]["meta"]["backbone"],
+        backbone_seq=config["input"]["fasta"]["backbone"],
+        samples=config["input"]["meta"]["samples"],
+        samples_seq=config["input"]["fasta"]["samples"],
     output:
         metadata=OUTDIR / "raw" / "all.tsv",
         sequences=OUTDIR / "raw" / "all.fasta",
@@ -13,10 +13,10 @@ rule collate:
     shell:
         """
     csvtk -t concat \
-    {input.vidrl} \
+    {input.samples} \
     {input.backbone} -T > {output.metadata}
 
     seqkit seq \
     {input.backbone_seq} \
-    {input.vidrl_seq} > {output.sequences}
+    {input.samples_seq} > {output.sequences}
     """
