@@ -1,37 +1,33 @@
-sample_sheet: ".test/config/samples.tsv"
-
 input:
   fasta:
-    backbone: "input/backbone.fasta"
-    samples: "input/input.fasta"
+    backbone: "input/backbone.b3.fasta"
+    samples: "input/samples.b3.fasta"
   meta:
     backbone: "input/backbone.tsv"
-    samples: "input/input.tsv"
+    samples: "input/samples.tsv"
 
-output: "results/"
+output: "results-b3/"
 
 align:
-  reference: "resources/reference.fasta"
-  # change as required - recommended ~90% of complete genome including UTR.
-  min_len: 10000
+  reference: "resources/reference_n450_b3.fasta"
+  min_len: 440
 
 plots:
   scripts:
-    # path to scripts
     tree: "workflow/scripts/plot_tree.R"
     snpdist: "workflow/scripts/plot_snpdist.R"
 
 filter:
-  strains_remove: "resources/strains_remove.txt"
-  strains_include: "resources/strains_include.txt"
+  strains_remove: "resources/empty.txt"
+  strains_include: "resources/empty.txt"
   
 mask:
-  skip: False
-  utr: "resources/mask.utr.bed"
-  custom: "resources/mask.utr.bed"
+  skip: True
+  utr: "resources/empty.bed"
+  custom: "resources/empty.bed"
 
 tree:
-  model: "GTR+I+G"
+  model: "GTR+G"
   tree_params: "-B 1000 -bnni -alrt 1000"
 
 refine:
@@ -49,8 +45,8 @@ traits:
     sampling_bias_correction: 3 # currently not used
 
 auspice:
-  strain_id_field: "strain"
-  traits: ["Country", "Genotype"]
+  strain_id_field: "notification_id"
+  traits: ["place_of_acquisition_country", "Genotype"]
   config: "resources/auspice.json"
   clades: "resources/clades.tsv"
   colors: "resources/colors.tsv"
