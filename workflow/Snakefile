@@ -1,13 +1,9 @@
 # Main entrypoint of the workflow.
-# Please follow the best practices:
-# https://snakemake.readthedocs.io/en/stable/snakefiles/best_practices.html,
-# in particular regarding the standardized folder structure mentioned there.
 
 # load required packages
 from pathlib import Path
 
-INDIR = Path("input")
-OUTDIR = Path("results")
+OUTDIR = Path(config["output"])
 RESOURCES = Path("resources")
 
 
@@ -42,7 +38,7 @@ onerror:
 # target rules
 # -----------------------------------------------------
 rule all:
+    default_target: True
     input:
         OUTDIR / "plots" / "global.pdf",
-        OUTDIR / "plots" / "snpdist.cluster.pdf",
-    default_target: True
+        # OUTDIR / "plots" / "snpdist.cluster.pdf",
