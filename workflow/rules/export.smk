@@ -43,7 +43,7 @@ rule plot_tree:
         meta=rules.collate.output.metadata,
         tree=rules.tree_bootstrapped.output.tree,
     output:
-        pdf=OUTDIR / "plots" / "global.pdf",
+        pdf=OUTDIR / "plots" / "tree.pdf",
     conda:
         "../envs/tree_plots.yaml"
     params:
@@ -59,7 +59,7 @@ rule plot_tree:
         """
 
 
-rule plot_snpdist_cluster:
+rule plot_snpdist:
     input:
         meta=rules.collate.output.metadata,
         snpdist=rules.calc_snpdist_cluster.output.snpdist,
@@ -69,7 +69,8 @@ rule plot_snpdist_cluster:
         "../envs/snpdist_plot.yaml"
     threads: 1
     params:
-        script_path=config["plots"]["scripts"]["snpdist"],
+        script_path=config["plots"]["scripts"]["snpdist"]["path"],
+        extra_args=config["plots"]["scripts"]["snpdist"]["extra_args"],
     message:
         "plotting heatmap for dist matrix"
     shell:
@@ -77,27 +78,13 @@ rule plot_snpdist_cluster:
         Rscript {params.script_path} \
         --input {input.snpdist} \
         --meta {input.meta} \
-        --output {output.snpdist}
+        --output {output.snpdist} {params.extra_args}
         """
 
 
-rule plot_snpdist_all:
+use rule plot_snpdist as plot_snpdist_all with:
     input:
         meta=rules.collate.output.metadata,
-        snpdist=rules.calc_all_snpdist.output.snpdist,
+        snpdist=rules.calc_snpdist_all.output.snpdist,
     output:
-        snpdist=OUTDIR / "plots" / "snpdist.all.pdf",
-    conda:
-        "voi_snpdistplot"
-    threads: 1
-    params:
-        script_path=config["plots"]["scripts"]["snpdist"],
-    message:
-        "plotting heatmap for distance matrix"
-    shell:
-        """
-        Rscript {params.script_path} \
-        --input {input.snpdist} \
-        --meta {input.meta} \
-        --output {output.snpdist}
-        """
+        snpdist=OUTDIR / "plots" / "snpdist.pdf",

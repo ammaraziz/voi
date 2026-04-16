@@ -30,7 +30,7 @@ rule align:
         """
 
 
-if not config["mask"]["skip"]:
+if not config["mask_utr"]["skip"]:
 
     rule mask:
         input:
@@ -43,7 +43,7 @@ if not config["mask"]["skip"]:
             "../envs/augur.yaml"
         threads: 1
         params:
-            bed=config["mask"]["utr"],
+            bed=config["mask_utr"]["file"],
         message:
             """
             Mask start and end of alignments
@@ -74,19 +74,3 @@ else:
             """
             cp {input.alignment} {output.sequences}
             """
-
-
-rule index:
-    input:
-        sequences=rules.mask.output.sequences,
-    output:
-        index=OUTDIR / "align" / "index.txt",
-    conda:
-        "../envs/augur.yaml"
-    threads: 1
-    shell:
-        """
-        augur index \
-            --sequences {input.sequences} \
-            --output {output.index} > {log} 2>&1
-        """

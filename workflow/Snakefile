@@ -40,5 +40,6 @@ onerror:
 rule all:
     default_target: True
     input:
-        OUTDIR / "plots" / "global.pdf",
-        # OUTDIR / "plots" / "snpdist.cluster.pdf",
+        OUTDIR / "plots" / "tree.pdf",
+        OUTDIR / "plots" / "snpdist.cluster.pdf",
+        OUTDIR / "plots" / "snpdist.pdf",
