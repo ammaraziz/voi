@@ -1,12 +1,8 @@
 pacman::p_load(
   dplyr,
-  tidyr,
   ggplot2,
-  pheatmap,
   ggtree,
   treeio,
-  patchwork,
-  lubridate,
   optparse,
   tidytree
 )
@@ -32,20 +28,6 @@ option_list <- list(
     action = "store",
     type = "character",
     default = NA
-  ),
-  make_option(
-    c("-c", "--color"),
-    help = "color by column in meta file input",
-    action = "store",
-    type = "character",
-    default = ""
-  ),
-  make_option(
-    c("-l", "--label"),
-    help = "which labels to put on the tree, if specified blank then none is printed",
-    action = "store",
-    type = "character",
-    default = "strain"
   )
 )
 
@@ -83,34 +65,31 @@ if (interactive()) {
   arguments = list(
     meta = "../../results/raw/all.tsv",
     tree = "../../results/tree/tree.boot.nwk",
-    output = "hav-2026-outbreak.pdf",
-    label = "",
-    color = "Country"
-  )
+    output = "../../results/plots/global.pdf"
+    )
 }
 
 tree = read.newick(arguments$tree)
 meta = read.csv(arguments$meta, sep = "\t")
 
+meta_heatmap = meta %>%
+  select(notification_id, 
+         State,
+         `Aquisition (Country)` = place_of_acquisition_country,
+         `Outbreak Ref #` = outbreak_ref,
+         DSid) %>%
+  tibble::column_to_rownames('notification_id')
 
-tree_plot = ggtree(tree)
+tree_plot = ggtree(tree) %<+% meta +
+  geom_tippoint() +
+  geom_tiplab(aes(label = Designation))+
+  coord_cartesian(clip = 'off', expand = FALSE) +
+  geom_treescale(x=0.004)
 
-if (nchar(arguments$label) > 0) {
-  tree_plot + geom_tiplab(aes(label = arguments$label))
-}
-
-if (nchar(arguments$color) > 0) {
-  if ( arguments$color %in% colnames(meta) ) {
-    tree_plot + 
-    color = geom_tippoint(aes(fill = arguments$color), shape = 21, size = 2)
-  } else {
-    print(paste0("Count not find ", arguments$color, " in input meta.tsv. Using geom_point without fill"))
-    tree_plot +
-    color = geom_tippoint(color="grey50", shape = 21, size = 2)
-  }
-} else {
-  tree_plot + geom_blank()
-}
+tree_heatmap_plot = gheatmap(p = tree_plot,
+                             data = meta_heatmap
+                             ) + 
+  scale_fill_viridis_d()
 
 ggsave(
   filename = arguments$output,
