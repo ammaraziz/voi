@@ -30,29 +30,50 @@ rule align:
         """
 
 
-rule mask:
-    input:
-        alignment=rules.align.output.alignment,
-    output:
-        sequences=OUTDIR / "align" / "masked.fasta",
-    log:
-        OUTDIR / "logs" / "mask.txt",
-    conda:
-        "../envs/augur.yaml"
-    threads: 1
-    params:
-        bed=config["mask"]["utr"],
-    message:
-        """
-        Mask start and end of alignments
-        """
-    shell:
-        """
-        augur mask \
-            --mask {params.bed} \
-            --sequence {input.alignment} \
-            --output {output.sequences} > {log} 2>&1
-        """
+if not config["mask"]["skip"]:
+
+    rule mask:
+        input:
+            alignment=rules.align.output.alignment,
+        output:
+            sequences=OUTDIR / "align" / "masked.fasta",
+        log:
+            OUTDIR / "logs" / "mask.txt",
+        conda:
+            "../envs/augur.yaml"
+        threads: 1
+        params:
+            bed=config["mask"]["utr"],
+        message:
+            """
+            Mask start and end of alignments
+            """
+        shell:
+            """
+            augur mask \
+                --mask {params.bed} \
+                --sequence {input.alignment} \
+                --output {output.sequences} > {log} 2>&1
+            """
+
+else:
+
+    rule mask:
+        input:
+            alignment=rules.align.output.alignment,
+        output:
+            sequences=OUTDIR / "align" / "masked.fasta",
+        log:
+            OUTDIR / "logs" / "mask.txt",
+        threads: 1
+        message:
+            """
+            Skipping Masking
+            """
+        shell:
+            """
+            cp {input.alignment} {output.sequences}
+            """
 
 
 rule index:
