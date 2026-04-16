@@ -11,24 +11,26 @@ input:
 output: "results/"
 
 align:
-  reference: "resources/reference.fasta"
+  reference: "input/reference.fasta"
   # change as required - recommended ~90% of complete genome including UTR.
   min_len: 10000
 
-plots:
-  scripts:
-    # path to scripts
-    tree: "workflow/scripts/plot_tree.R"
-    snpdist: "workflow/scripts/plot_snpdist.R"
-
 filter:
-  strains_remove: "resources/strains_remove.txt"
-  strains_include: "resources/strains_include.txt"
-  
-mask:
+  strains_remove: "input/strains_remove.txt"
+  strains_include: "input/strains_include.txt"
+
+mask_utr:
   skip: False
-  utr: "resources/mask.utr.bed"
-  custom: "resources/mask.utr.bed"
+  utr: "input/mask.utr.bed"
+
+# mask positions before snpdist matrix is calculated
+mask_snpdist:
+  skip: False
+  snpdist: "input/mask.snp.bed"
+
+snpdist_cluster:
+  skip: False
+  list: "input/cluster.txt"
 
 tree:
   model: "GTR+I+G"
@@ -47,6 +49,13 @@ traits:
       - country
       - region
     sampling_bias_correction: 3 # currently not used
+
+plots:
+  scripts:
+    # path to scripts
+    tree: "workflow/scripts/plot_tree.R"
+    snpdist: "workflow/scripts/plot_snpdist.R"
+
 
 auspice:
   strain_id_field: "strain"

@@ -9,7 +9,7 @@ input:
 output: "results-d8/"
 
 align:
-  reference: "resources/reference_n450_d8.fasta"
+  reference: "input/reference_n450_d8.fasta"
   min_len: 440
 
 plots:
@@ -18,13 +18,17 @@ plots:
     snpdist: "workflow/scripts/plot_snpdist.R"
 
 filter:
-  strains_remove: "resources/empty.txt"
-  strains_include: "resources/empty.txt"
+  strains_remove: "input/empty.txt"
+  strains_include: "input/empty.txt"
   
-mask:
+mask_utr:
   skip: True
-  utr: "resources/empty.bed"
-  custom: "resources/empty.bed"
+  utr: "input/mask.utr.bed"
+
+# mask positions before snpdist matrix is calculated
+mask_snpdist:
+  skip: True
+  snpdist: "input/mask.snp.bed"
 
 tree:
   model: "GTR+G"

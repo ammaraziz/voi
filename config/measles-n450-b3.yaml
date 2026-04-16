@@ -9,22 +9,28 @@ input:
 output: "results-b3/"
 
 align:
-  reference: "resources/reference_n450_b3.fasta"
+  reference: "input/reference_n450_b3.fasta"
   min_len: 440
 
 plots:
   scripts:
     tree: "workflow/scripts/plot_tree.R"
-    snpdist: "workflow/scripts/plot_snpdist.R"
+    snpdist: 
+      path: "workflow/scripts/plot_snpdist.R"
+      extra_args: "--font-size 8 --plot-type bottom --labels Designation"
 
 filter:
-  strains_remove: "resources/empty.txt"
-  strains_include: "resources/empty.txt"
+  strains_remove: "input/empty.txt"
+  strains_include: "input/empty.txt"
   
-mask:
+mask_utr:
   skip: True
-  utr: "resources/empty.bed"
-  custom: "resources/empty.bed"
+  file: "input/mask.utr.bed"
+
+# mask positions before snpdist matrix is calculated
+mask_snpdist:
+  skip: True
+  snpdist: "input/mask.snp.bed"
 
 tree:
   model: "GTR+G"
