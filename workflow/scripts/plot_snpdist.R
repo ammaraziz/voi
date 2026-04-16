@@ -3,39 +3,77 @@ pacman::p_load(dplyr, pheatmap, viridisLite, optparse, tibble)
 rlang::global_handle()
 
 option_list <- list(
-  make_option(c("-i","--input"),
-              help = "input tsv snp dist.", 
-              action="store", type="character", default=NA),
-  make_option(c("-m","--meta"),
-              help = "file containing meta data information. This is used to plot the colored bars. In the meta.tsv the first column must match up with matrix.tsv first column.",
-              action="store", type="character", default=NA),
-  make_option(c("-o","--output"),
-              help = "output path/file. Filetype is decided by the extension in the path. png, pdf, tiff, bmp, jpeg",
-              action="store", type="character", default=NA),
-  make_option(c("--font-size"),
-              help = "Control the font size",
-              action="store", type="numeric", default=12),
-  make_option(c("--decimals"),
-              help = "Specify the number of decimals to show",
-              action="store", type="numeric", default=0),
-  make_option(c("--color-steps"),
-              help = "Specify the number of viridis color steps to use.",
-              action="store", type="numeric", default=256),
-  make_option(c("--plot-type"), 
-              help = "Controls if to display the complete matrix complete, top or bottom half. Options: complete, top, bottom.",
-              action="store", type="character", default="all"),
-  make_option(c("-a", "--annotate-column"), 
-              help = "Given a metafile, select which column to include as an annotation column. Colors will be autoselected for you using colorbrew2 divergent scale.",
-              action="append", type = "character"),
-  make_option(c("--labels"),
-              help = "Given a metafile, use this column in the metafile as the custom labels for heatmap",
-              action="store", type = "character", default=NA)
+  make_option(
+    c("-i", "--input"),
+    help = "input tsv snp dist.",
+    action = "store",
+    type = "character",
+    default = NA
+  ),
+  make_option(
+    c("-m", "--meta"),
+    help = "file containing meta data information. This is used to plot the colored bars. In the meta.tsv the first column must match up with matrix.tsv first column.",
+    action = "store",
+    type = "character",
+    default = NA
+  ),
+  make_option(
+    c("-o", "--output"),
+    help = "output path/file. Filetype is decided by the extension in the path. png, pdf, tiff, bmp, jpeg",
+    action = "store",
+    type = "character",
+    default = NA
+  ),
+  make_option(
+    c("--font-size"),
+    help = "Control the font size",
+    action = "store",
+    type = "numeric",
+    default = 12
+  ),
+  make_option(
+    c("--decimals"),
+    help = "Specify the number of decimals to show",
+    action = "store",
+    type = "numeric",
+    default = 0
+  ),
+  make_option(
+    c("--color-steps"),
+    help = "Specify the number of viridis color steps to use.",
+    action = "store",
+    type = "numeric",
+    default = 256
+  ),
+  make_option(
+    c("--plot-type"),
+    help = "Controls if to display the complete matrix complete, top or bottom half. Options: complete, top, bottom.",
+    action = "store",
+    type = "character",
+    default = "all"
+  ),
+  make_option(
+    c("-a", "--annotate-column"),
+    help = "Given a metafile, select which column to include as an annotation column. Colors will be autoselected for you using colorbrew2 divergent scale. This flag can be specified multiple times.",
+    action = "append",
+    type = "character"
+  ),
+  make_option(
+    c("--labels"),
+    help = "Given a metafile, use this column in the metafile as the custom labels for heatmap",
+    action = "store",
+    type = "character",
+    default = NA
+  )
 )
 
 parser <- OptionParser(
-  usage = paste("%prog -i [INPUTDIR] -o [OUTPUTDIR]",
-                "Plot heatmap", sep="\n"),
-  option_list=option_list
+  usage = paste(
+    "%prog -i [INPUTDIR] -o [OUTPUTDIR]",
+    "Plot heatmap",
+    sep = "\n"
+  ),
+  option_list = option_list
 )
 
 arguments = parse_args(object = parser, positional_arguments = FALSE)
@@ -51,7 +89,16 @@ if (!is.na(arguments$`color-steps`)) {
 }
 
 # annotation column colors
-acolors = c('#1f78b4', '#33a02c', '#e31a1c', '#6a3d9a', '#b15928', "#FA8072", "#FFD700", "#bdbdbd")
+acolors = c(
+  '#1f78b4',
+  '#33a02c',
+  '#e31a1c',
+  '#6a3d9a',
+  '#b15928',
+  "#FA8072",
+  "#FFD700",
+  "#bdbdbd"
+)
 
 # read in data
 distdata = read.csv(arguments$input, sep = "\t", header = F, skip = 1) %>%
@@ -65,36 +112,46 @@ matrix_width = nrow(distdata) - 1
 # metadata
 if (!is.na(arguments$meta)) {
   meta = read.csv(arguments$meta, sep = "\t")
+  if (!is.null(arguments$`annotate-column`)) {
+    # create annotation dataframe
+    annotations = distdata %>%
+      select(id) %>%
+      left_join(meta, by = c("id" = colnames(meta)[1])) %>%
+      mutate(across(everything(), as.factor))
+    rownames(annotations) = annotations$id
+    # subset to requested annotations
+    annotations = annotations[, c(arguments$`annotate-column`), drop = FALSE]
 
-  # create annotation dataframe
-  annotations = distdata %>% 
-    select(id) %>%
-    left_join(meta, by = c("id" = colnames(meta)[1])) %>%
-    mutate(across(everything(), as.factor))
-  rownames(annotations) = annotations$id
-  annotations = annotations[, c(arguments$`annotate-column`)]
-
-  # create colours
-  anno_colors = list()
-  for (colname in arguments$`annotate-column`) {
-    col_len = length(unique(annotations[, colname]))
-    dat = list(setNames(rep(acolors, length.out = col_len), unique(annotations[, colname])))
-    names(dat) = colname
-    anno_colors = append(anno_colors,dat)
+    # create colours
+    anno_colors = list()
+    for (colname in arguments$`annotate-column`) {
+      col_len = length(unique(annotations[, colname]))
+      dat = list(setNames(
+        rep(acolors, length.out = col_len),
+        unique(annotations[, colname])
+      ))
+      names(dat) = colname
+      anno_colors = append(anno_colors, dat)
+    }
+  } else {
+    anno_colors = NA
+    annotations = NA
   }
+
   # custom labels
   if (!is.na(arguments$labels)) {
     if (arguments$label %in% colnames(meta)) {
-      labels_row = annotations[ , arguments$label]
-      labels_col = annotations[ , arguments$label]
+      labels_row = meta[, arguments$label]
+      labels_col = meta[, arguments$label]
     } else {
-      stop("Ooops - you specified a column name that does not match the colnames in the input meta file. Check inputs.")
+      stop(
+        "Ooops - you specified a column name that does not match the colnames in the input meta file. Check inputs."
+      )
     }
   } else {
-    labels_row = rownames(annotations)
-    labels_col = rownames(annotations)
+    labels_row = rownames(meta)
+    labels_col = rownames(meta)
   }
-
 } else {
   annotations = NA
   anno_colors = NA
@@ -102,8 +159,8 @@ if (!is.na(arguments$meta)) {
   labels_col = colnames(distdata)
 }
 
-# convert to matrix 
-plot_matrix = as.matrix(distdata[,c(2:matrix_width)])
+# convert to matrix
+plot_matrix = as.matrix(distdata[, c(2:matrix_width)])
 #calc dist for clustering then get order
 order = hclust(dist(t(plot_matrix), method = "euclidean"))$order
 plot_matrix = plot_matrix[order, order]
@@ -111,20 +168,17 @@ plot_matrix = plot_matrix[order, order]
 display_numbers = round(plot_matrix, arguments$decimals)
 
 # control what to display
-  if (arguments$`plot-type` == "all") {
-    plot_matrix = plot_matrix
-
-  } else if (arguments$`plot-type` == "bottom")  {
-    plot_matrix[upper.tri(plot_matrix)] = NA
-    display_numbers[upper.tri(plot_matrix)] = ''
-
-  } else if (arguments$`plot-type` == "top")  {
-    plot_matrix[lower.tri(plot_matrix)] = NA
-    display_numbers[lower.tri(plot_matrix)] = ''
-    
-  } else {
-    stop("Whoops - can only choose from all, top, bottom.")
-  }
+if (arguments$`plot-type` == "all") {
+  plot_matrix = plot_matrix
+} else if (arguments$`plot-type` == "bottom") {
+  plot_matrix[upper.tri(plot_matrix)] = NA
+  display_numbers[upper.tri(plot_matrix)] = ''
+} else if (arguments$`plot-type` == "top") {
+  plot_matrix[lower.tri(plot_matrix)] = NA
+  display_numbers[lower.tri(plot_matrix)] = ''
+} else {
+  stop("Whoops - can only choose from all, top, bottom.")
+}
 
 pheatmap(
   mat = plot_matrix,
