@@ -6,10 +6,24 @@ pacman::p_load(
   optparse,
   tidytree,
   ggnewscale,
-  randomcoloR
+  randomcoloR,
+  jsonlite
 )
 
 rlang::global_handle()
+
+load_Colors <- function(){
+  url <- "https://raw.githubusercontent.com/vidrl/VIDRLColor/main/VIDRLColor.json"
+  color_list <- fromJSON(url)
+  return(color_list)
+}
+
+
+Get_Color_list <- function(section){
+  color_list <- load_Colors()
+  return(c(color_list[["fix"]], color_list[[section]]))
+}
+
 
 option_list <- list(
   make_option(
@@ -82,11 +96,8 @@ if (any(is.na(arguments$options))) {
 if (interactive()) {
   arguments = list(
     meta = "../../results-b3/raw/all.tsv",
-    #meta = "/Users/admin/Documents/VIDRL/outbreak/measles/CW_report/N450/d8.tsv",
     tree = "../../results-b3/tree/tree.boot.nwk",
-    #tree = "/Users/admin/Documents/VIDRL/outbreak/measles/CW_report/N450/d8.tree.boot.nwk",
     output = "/Users/admin/Documents/VIDRL/outbreak/measles/CW_report/N450/b3-test.pdf",
-    #output = "/Users/admin/Documents/VIDRL/outbreak/measles/CW_report/N450/d8.pdf"
     offset_rate = 0.11,
     width_adjust = TRUE
     )
@@ -140,30 +151,13 @@ assign_variable_colors <- function(vars, palette_func = rainbow) {
 
 add_heatmap <- function(gtree, meta_heatmap, offset_rate, width_adjust){
   ## make color vector
-  total_color <- c("VIC"   = "#1F77B4",
-                   "NT" = "#FF7F0E",
-                   "QLD" = "#2CA02C",
-                   "SA"   = "#D62728",
-                   "TAS"  = "#9467BD",
-                   "NSW" = "#FFD700",
-                   "WA" = "#6A00FF",
-                   "International" = "#FFF8DC")
-  for (c in colnames(meta_heatmap)){
-    if (c == "State"){
-      next
-    }
-    tmp_color <- assign_variable_colors(unique(meta_heatmap[[c]]), distinctColorPalette)
-    total_color <- c(tmp_color, total_color)
-  }
-  total_color["Unknown"] = "#FFF5EE"
+  total_color = Get_Color_list("measles")
   
   # calculate the tree paramters
   plot_dim_x <- ggplot_build(gtree)$layout$panel_scales_x[[1]]$range$range[2]
   tree_width <- range(ggplot_build(gtree)$data[[1]]$x)[2]
   
   width = 0.025
-  #where to change if offset is not enough or too much
-  #*0.11 is the default value
   offset <- plot_dim_x * offset_rate
   width_rate <- 1
   if (width_adjust){
@@ -183,7 +177,6 @@ add_heatmap <- function(gtree, meta_heatmap, offset_rate, width_adjust){
       ) +
       scale_fill_manual(c, values = total_color) + 
       guides(fill=guide_legend(ncol=2,byrow=TRUE))
-    #where to change if there is gap between heatmap cols
     offset = offset + tree_width * width * width_rate
   }
   
@@ -202,4 +195,3 @@ ggsave(
   height = 210*1.5,
   units = "mm"
 )
-
