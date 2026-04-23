@@ -2,7 +2,6 @@
 Export to auspice.json and visualisations with ggtree
 """
 
-
 rule export:
     input:
         tree=rules.refine.output.tree,
@@ -43,12 +42,12 @@ rule plot_tree:
         meta=rules.collate.output.metadata,
         tree=rules.tree_bootstrapped.output.tree,
     output:
-        pdf=OUTDIR / "plots" / "tree.pdf",
+        pdf=OUTDIR / "plots" / (prefix + "tree.pdf"),
     conda:
         "../envs/tree_plots.yaml"
     params:
-        script_path=config["plots"]["scripts"]["tree"]["path"],
-        extra_args=config["plots"]["scripts"]["tree"]["extra_args"]
+        script_path=config["scripts"]["tree"]["path"],
+        extra_args=config["scripts"]["tree"]["extra_args"]
     message:
         "Plotting global tree"
     shell:
@@ -65,13 +64,13 @@ rule plot_snpdist:
         meta=rules.collate.output.metadata,
         snpdist=rules.calc_snpdist_cluster.output.snpdist,
     output:
-        snpdist=OUTDIR / "plots" / "snpdist.cluster.pdf",
+        snpdist=OUTDIR / "plots" / (prefix + "snpdist.cluster.pdf"),
     conda:
         "../envs/snpdist_plot.yaml"
     threads: 1
     params:
-        script_path=config["plots"]["scripts"]["snpdist"]["path"],
-        extra_args=config["plots"]["scripts"]["snpdist"]["extra_args"],
+        script_path=config["scripts"]["snpdist"]["path"],
+        extra_args=config["scripts"]["snpdist"]["extra_args"],
     message:
         "plotting heatmap for dist matrix"
     shell:
@@ -88,4 +87,25 @@ use rule plot_snpdist as plot_snpdist_all with:
         meta=rules.collate.output.metadata,
         snpdist=rules.calc_snpdist_all.output.snpdist,
     output:
-        snpdist=OUTDIR / "plots" / "snpdist.pdf",
+        snpdist=OUTDIR / "plots" / (prefix + "snpdist.pdf"),
+
+rule compute_snpdist_metrics:
+    input:
+        meta=rules.collate.output.metadata,
+        snpdist=rules.calc_snpdist_cluster.output.snpdist,
+    output:
+        metrics=OUTDIR / "plots" / (prefix + "metrics.csv"),
+    conda:
+        "../envs/snpdist_plot.yaml"
+    params:
+        script_path=config["scripts"]["metrics"]["path"],
+        extra_args=config["scripts"]["metrics"]["extra_args"],
+    threads: 1
+    shell:
+        """
+        Rscript {params.script_path} \
+        --dist {input.snpdist} \
+        --meta {input.meta} \
+        --output {output.metrics} {params.extra_args} > /dev/null 2>&1
+        """
+
