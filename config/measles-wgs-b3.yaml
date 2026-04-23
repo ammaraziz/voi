@@ -1,15 +1,15 @@
 input:
   fasta:
-    backbone: "input/n450/backbone.b3.fasta"
-    samples: "input/n450/samples.b3.fasta"
+    backbone: "input/wgs/backbone.b3.fasta"
+    samples: "input/wgs/samples.b3.fasta"
   meta:
-    backbone: "input/n450/backbone.tsv"
-    samples: "input/n450/samples.tsv"
+    backbone: "input/wgs/backbone.tsv"
+    samples: "input/wgs/samples.tsv"
 
-output: "results-b3/"
+output: "results-wgs-b3/"
 
 align:
-  reference: "input/n450/reference_n450_b3.fasta"
+  reference: "input/wgs/reference.b3.fasta"
   min_len: 440
 
 plots:
@@ -27,8 +27,8 @@ filter:
   strains_include: "input/empty.txt"
   
 mask_utr:
-  skip: True
-  file: "input/mask.utr.bed"
+  skip: False
+  file: "input/wgs/mask.utr.b3.bed"
 
 # mask positions before snpdist matrix is calculated
 mask_snpdist:

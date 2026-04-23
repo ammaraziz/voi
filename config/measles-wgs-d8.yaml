@@ -1,22 +1,22 @@
 input:
   fasta:
-    backbone: "input/n450/backbone.b3.fasta"
-    samples: "input/n450/samples.b3.fasta"
+    backbone: "input/wgs/backbone.d8.fasta"
+    samples: "input/wgs/samples.d8.fasta"
   meta:
-    backbone: "input/n450/backbone.tsv"
-    samples: "input/n450/samples.tsv"
+    backbone: "input/wgs/backbone.tsv"
+    samples: "input/wgs/samples.tsv"
 
-output: "results-b3/"
+output: "results-wgs-d8/"
 
 align:
-  reference: "input/n450/reference_n450_b3.fasta"
+  reference: "input/wgs/reference.d8.fasta"
   min_len: 440
 
 plots:
   scripts:
     tree:
         path: "workflow/scripts/plot_tree_measles_n450.R"
-        extra_args: "--width_adjust TRUE"
+        extra_args: "--offset_rate 0.3"
 
     snpdist: 
       path: "workflow/scripts/plot_snpdist.R"
@@ -27,8 +27,8 @@ filter:
   strains_include: "input/empty.txt"
   
 mask_utr:
-  skip: True
-  file: "input/mask.utr.bed"
+  skip: False
+  file: "input/wgs/mask.utr.d8.bed"
 
 # mask positions before snpdist matrix is calculated
 mask_snpdist:

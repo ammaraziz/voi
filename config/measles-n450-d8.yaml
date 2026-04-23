@@ -1,21 +1,26 @@
 input:
   fasta:
-    backbone: "input/backbone.d8.fasta"
-    samples: "input/samples.d8.fasta"
+    backbone: "input/n450/backbone.d8.fasta"
+    samples: "input/n450/samples.d8.fasta"
   meta:
-    backbone: "input/backbone.tsv"
-    samples: "input/samples.tsv"
+    backbone: "input/n450/backbone.tsv"
+    samples: "input/n450/samples.tsv"
 
 output: "results-d8/"
 
 align:
-  reference: "input/reference_n450_d8.fasta"
+  reference: "input/n450/reference_n450_d8.fasta"
   min_len: 440
 
 plots:
   scripts:
-    tree: "workflow/scripts/plot_tree.R"
-    snpdist: "workflow/scripts/plot_snpdist.R"
+    tree:
+        path: "workflow/scripts/plot_tree_measles_n450.R"
+        extra_args: "--offset_rate 0.3"
+
+    snpdist: 
+      path: "workflow/scripts/plot_snpdist.R"
+      extra_args: "--font-size 8 --plot-type bottom --labels Designation"
 
 filter:
   strains_remove: "input/empty.txt"
