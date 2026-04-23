@@ -1,4 +1,8 @@
-pacman::p_load(dplyr, pheatmap, viridisLite, optparse, tibble)
+library(dplyr)
+library(pheatmap)
+library(viridisLite)
+library(optparse)
+library(tibble)
 
 rlang::global_handle()
 
