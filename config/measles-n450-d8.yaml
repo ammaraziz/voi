@@ -1,3 +1,5 @@
+prefix: "d8-n450-"
+
 input:
   fasta:
     backbone: "input/n450/backbone.d8.fasta"
@@ -12,15 +14,16 @@ align:
   reference: "input/n450/reference_n450_d8.fasta"
   min_len: 440
 
-plots:
-  scripts:
-    tree:
-        path: "workflow/scripts/plot_tree_measles_n450.R"
-        extra_args: "--offset_rate 0.3"
-
-    snpdist: 
-      path: "workflow/scripts/plot_snpdist.R"
-      extra_args: "--font-size 8 --plot-type bottom --labels Designation"
+scripts:
+  tree:
+    path: "workflow/scripts/plot_tree_measles_n450.R"
+    extra_args: "--offset_rate 0.3"
+  snpdist: 
+    path: "workflow/scripts/plot_snpdist.R"
+    extra_args: "--font-size 8 --plot-type bottom --labels Designation"
+  metrics:
+    path: "workflow/scripts/snpdist_metrics.R"
+    extra_args: "--group DSid --group outbreak_ref"
 
 filter:
   strains_remove: "input/empty.txt"
@@ -43,7 +46,7 @@ refine:
     coalescent: "opt"
     date_inference: "marginal"
     clock_filter_iqd: 4
-    
+
 ancestral:
     inference: "joint"
 

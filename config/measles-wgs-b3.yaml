@@ -1,3 +1,5 @@
+prefix: "b3-wgs-"
+
 input:
   fasta:
     backbone: "input/wgs/backbone.b3.fasta"
@@ -6,21 +8,23 @@ input:
     backbone: "input/wgs/backbone.tsv"
     samples: "input/wgs/samples.tsv"
 
+
 output: "results-wgs-b3/"
 
 align:
   reference: "input/wgs/reference.b3.fasta"
-  min_len: 440
+  min_len: 14000
 
-plots:
-  scripts:
-    tree:
-        path: "workflow/scripts/plot_tree_measles_n450.R"
-        extra_args: "--width_adjust TRUE"
-
-    snpdist: 
-      path: "workflow/scripts/plot_snpdist.R"
-      extra_args: "--font-size 8 --plot-type bottom --labels Designation"
+scripts:
+  tree:
+    path: "workflow/scripts/plot_tree_measles_n450.R"
+    extra_args: "--width_adjust TRUE --offset_rate 0.2"
+  snpdist: 
+    path: "workflow/scripts/plot_snpdist.R"
+    extra_args: "--font-size 8 --plot-type bottom --labels Designation"
+  metrics:
+    path: "workflow/scripts/snpdist_metrics.R"
+    extra_args: "--group DSid --group outbreak_ref"
 
 filter:
   strains_remove: "input/empty.txt"
