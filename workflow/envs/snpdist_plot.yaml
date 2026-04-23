@@ -1,15 +1,10 @@
-name: voi_snpdistplot
 channels:
   - conda-forge
   - bioconda
 dependencies:
   - r-dplyr
-  - r-tidyr
-  - r-ggplot2
   - r-pheatmap
-  - r-viridis
-  - r-gridExtra
-  - r-svglite
-  - r-pacman
-  - r-pheatmap
-
+  - r-viridisLite
+  - r-optparse=1.8.2
+  - r-tibble
+prefix: voi_snpdist_plot_
