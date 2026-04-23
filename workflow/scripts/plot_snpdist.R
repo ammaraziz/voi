@@ -141,8 +141,12 @@ if (!is.na(arguments$meta)) {
   # custom labels
   if (!is.na(arguments$labels)) {
     if (arguments$label %in% colnames(meta)) {
-      labels_row = meta[, arguments$label]
-      labels_col = meta[, arguments$label]
+      labs = distdata %>%
+        select(id) %>%
+        left_join(meta, by = c("id" = colnames(meta)[1])) %>%
+        pull(arguments$label)
+      labels_row = labs
+      labels_col = labs
     } else {
       stop(
         "Ooops - you specified a column name that does not match the colnames in the input meta file. Check inputs."
@@ -195,8 +199,8 @@ pheatmap(
   fontsize_row = 12,
   fontsize_col = 12,
   filename = arguments$output,
-  width = 11.7,
-  height = 8.27,
+  width = 11.7*2,
+  height = 8.27*2,
   labels_row = labels_row,
   labels_col = labels_col
 )
