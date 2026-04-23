@@ -47,7 +47,8 @@ rule plot_tree:
     conda:
         "../envs/tree_plots.yaml"
     params:
-        script_path=config["plots"]["scripts"]["tree"],
+        script_path=config["plots"]["scripts"]["tree"]["path"],
+        extra_args=config["plots"]["scripts"]["tree"]["extra_args"]
     message:
         "Plotting global tree"
     shell:
@@ -55,7 +56,7 @@ rule plot_tree:
         Rscript {params.script_path} \
         --tree {input.tree} \
         --meta {input.meta} \
-        --output {output.pdf}
+        --output {output.pdf} {params.extra_args} > /dev/null 2>&1
         """
 
 
@@ -78,7 +79,7 @@ rule plot_snpdist:
         Rscript {params.script_path} \
         --input {input.snpdist} \
         --meta {input.meta} \
-        --output {output.snpdist} {params.extra_args}
+        --output {output.snpdist} {params.extra_args} > /dev/null 2>&1
         """
 
 
