@@ -10,7 +10,7 @@ RESOURCES = Path("resources")
 # load configuration
 # -----------------------------------------------------
 configfile: "config/base.yaml"
-
+prefix = config["prefix"]
 
 # load rules
 # -----------------------------------------------------
@@ -40,6 +40,6 @@ onerror:
 rule all:
     default_target: True
     input:
-        OUTDIR / "plots" / "tree.pdf",
-        OUTDIR / "plots" / "snpdist.cluster.pdf",
-        OUTDIR / "plots" / "snpdist.pdf",
+        OUTDIR / "plots" / (prefix + "tree.pdf"),
+        OUTDIR / "plots" / (prefix + "snpdist.pdf"),
+        OUTDIR / "plots" / (prefix + "metrics.csv"),
